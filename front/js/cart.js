@@ -27,11 +27,11 @@ function allFunction() {
             .then(res => res.json())
             .then(productApi => {
 
-                let a = document.createElement('article');
-                a.className = 'cart__item';
-                a.dataset.id = product.id;
-                a.dataset.color = product.color;
-                a.innerHTML =
+                let articleCreate = document.createElement('article');
+                articleCreate.className = 'cart__item';
+                articleCreate.dataset.id = product.id;
+                articleCreate.dataset.color = product.color;
+                articleCreate.innerHTML =
                     `<div class="cart__item__img">
                         <img src="${productApi.imageUrl}" alt="${productApi.altTxt}"> 
                         </div>
@@ -51,7 +51,7 @@ function allFunction() {
                                     </div>
                                 </div>
                             </div>`;
-                document.getElementById('cart__items').appendChild(a);
+                document.getElementById('cart__items').appendChild(articleCreate);
                 totalNumberItem += productStorage[i].quantity;
                 totalItem = productStorage[i].quantity;
                 totalItem = totalItem * productApi.price;
