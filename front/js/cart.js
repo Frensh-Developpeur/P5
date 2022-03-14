@@ -244,7 +244,7 @@ document.querySelector('#order').addEventListener('click', function (e) {
 
                 })
                 console.log(products)
-                let recapOrder = {
+                let contactProductsOrder = {
                     contact,
                     products
                 }
@@ -254,7 +254,7 @@ document.querySelector('#order').addEventListener('click', function (e) {
                         'Accept': 'application/json',
                         'Content-type': 'application/json'
                     },
-                    body: JSON.stringify(recapOrder),
+                    body: JSON.stringify(contactProductsOrder),
                 })
                     .then(res => res.json())
                     .then(data => {
