@@ -112,8 +112,8 @@ function allFunction() {
 
                             } else {
                                 modifPriceAndQuantityTotal();
-                                if (!Number.isInteger(modifQuantity) || modifQuantity < 0) {
-                                    alert('Erreur, un chiffre entier est attendu supérieur ou égal à 0')
+                                if (!Number.isInteger(modifQuantity) || modifQuantity < 0 || modifQuantity > 100) {
+                                    alert('Erreur, la valeur doit doit être supérieur à 0 et inférieur ou égal à 100');
                                     location.reload();
                                     return false;
                                 }
@@ -186,6 +186,7 @@ function allFunction() {
 /* Evenement qui gere le formulaire  */
 document.querySelector('#order').addEventListener('click', function (e) {
     checkForm();
+    e.preventDefault();
     function checkForm() {
         let firstName = document.getElementById('firstName');
         let lastName = document.getElementById('lastName');
