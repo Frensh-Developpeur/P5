@@ -12,9 +12,8 @@ window.onload = () => {
         /* Fin */
 
         /* Utilisation du contenu fournit par l'api avec ajout dans le DOM */
-
         .then(function (item) {
-
+            /* Vérification de la réponse de l'API. Si produit manquant dans l'API affiche le code contenu dans (Else) */
             if (item.imageUrl && item.altTxt) {
                 let image = document.createElement('img');
                 image.src = item.imageUrl;
@@ -73,7 +72,7 @@ window.onload = () => {
                     quantity: parseInt(quantity),
                     color: document.getElementById('colors').value
                 }
-
+                /* Function qui se base en rapport à la gestion de la sécurité */
                 function alertConf() {
                     let buttonDisabled = document.querySelector('#addToCart');
                     buttonDisabled.disabled = true;
@@ -146,8 +145,8 @@ window.onload = () => {
                 }
                 /*Fin de l'ajout des élements dans le local Storage */
             })
-            /* Si l'API n'est pas reconnu le catch ce déclenche et met fin au script */
         })
+        /* Si l'API n'est pas reconnu le catch ce déclenche et met fin au script */
         .catch(function () {
             document.querySelector('.item').innerHTML = `<p id = "errorServeur" >Le serveur est actuellement indisponible</p>`;
             document.getElementById('errorServeur').style.fontSize = '2.5rem';

@@ -1,10 +1,11 @@
+/* Charge le code à la fin */
 window.onload = () => {
-
+    /* Connexion à l'API */
     fetch('http://localhost:3000/api/products')
         .then(function (res) {
             return res.json();
         })
-
+        /* Réponse de l'API */
         .then((productsItems) => {
             productsItems.forEach((item) => {
                 let location = "./product.html?id=" + item._id;
@@ -20,7 +21,7 @@ window.onload = () => {
             }
             )
         })
-
+        /* Echec de connexion vers l'API */
         .catch(function () {
             document.querySelector('.titles').innerHTML = `<p id = "errorServeur" >Le serveur est actuellement indisponible</p>`;
             document.getElementById('errorServeur').style.textAlign = 'center';

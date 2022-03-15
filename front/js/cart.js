@@ -1,5 +1,6 @@
-
+/* Charge le code une fois que le reste est chargée */
 window.onload = () => {
+    /* Vérifie que le localStorage est vide */
     if (localStorage.length === 0) {
         let panierNow = document.createElement('h2');
         panierNow.style.textAlign = "center";
@@ -16,6 +17,7 @@ window.onload = () => {
         allFunction();
     }
 }
+/* Function affichant tout les détails du DOM */
 function allFunction() {
     let productStorage = JSON.parse(localStorage.getItem("productStorage"));
     let totalItem = 0;
@@ -60,7 +62,7 @@ function allFunction() {
                 document.querySelector('#totalPrice').innerHTML = `${totalPrice}`;
             })
     })
-
+    /* Evenement qui gère la quantité des produits  */
     document.querySelector('#cart__items').addEventListener('change', function (e) {
         if (e.target.className === 'itemQuantity') {
             let modifQuantity = parseInt(e.target.value);
@@ -141,6 +143,8 @@ function allFunction() {
             })
         }
     })
+
+    /* Evenement qui gère la suppression des produits */
     document.querySelector('#cart__items').addEventListener('click', function (e) {
 
         if (e.target.className === 'deleteItem') {
@@ -179,6 +183,7 @@ function allFunction() {
         }
     })
 }
+/* Evenement qui gere le formulaire  */
 document.querySelector('#order').addEventListener('click', function (e) {
     checkForm();
     function checkForm() {
@@ -243,7 +248,6 @@ document.querySelector('#order').addEventListener('click', function (e) {
                     products.push(productStorage[i].id);
 
                 })
-                console.log(products)
                 let contactProductsOrder = {
                     contact,
                     products
