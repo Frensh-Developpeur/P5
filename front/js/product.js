@@ -1,41 +1,38 @@
-/* Permet de récuperer l'id indiquer dans l'url pour s'adapter à chaque produit */
-let params = (new URL(window.location)).searchParams;
-let id = params.get('id');
-/* Fin */
-
 window.onload = () => {
+
+    /* Permet de récuperer l'id indiquer dans l'url pour s'adapter à chaque produit */
+    let params = (new URL(window.location)).searchParams;
+    let id = params.get('id');
+    /* Fin */
     /* Connexion avec l'API récupération de la promesses */
     fetch('http://localhost:3000/api/products/' + id)
         .then(function (res) {
             return res.json();
         })
-        /* Fin */
-
-        /* Utilisation du contenu fournit par l'api avec ajout dans le DOM */
+        /* Utilisation du contenu fourni par l'api avec ajout dans le DOM */
         .then(function (item) {
-            /* Vérification de la réponse de l'API. Si produit manquant dans l'API affiche le code contenu dans (Else) */
+            /* Vérification de la réponse de l'API. Si un produit manquant dans l'API affiche le code contenu dans (Else) */
             if (item.imageUrl && item.altTxt) {
                 let image = document.createElement('img');
                 image.src = item.imageUrl;
                 image.alt = item.altTxt;
                 document.querySelector('.item__img').appendChild(image);
             } else {
-                document.querySelector('.item__img').innerHTML = `Image d'un canapé`;
+                document.querySelector('.item__img').innerHTML = `Image canapé`;
             }
 
             if (item.name) {
                 document.querySelector('title').innerHTML = `${item.name}`;
                 document.getElementById('title').innerHTML = `${item.name}`;
             } else {
-                document.querySelector('title').innerHTML = `Produit non défini`;
-                document.getElementById('title').innerHTML = `Produit non défini`;
-                document.getElementById('addToCart').disabled = true;
+                document.querySelector('title').innerHTML = `Nom du produit non défini`;
+                document.getElementById('title').innerHTML = `Nom du produit non défini`;
             }
 
             if (item.price) {
-                document.getElementById('price').innerHTML = `${item.price}`;
+                document.getElementById('price').innerHTML = `${item.price} `;
             } else {
-                document.getElementById('price').innerHTML = `0 `;
+                document.getElementById('price').innerHTML = `- `;
                 document.getElementById('addToCart').disabled = true;
             }
 
@@ -48,11 +45,11 @@ window.onload = () => {
             /* Utilisation d'une boucle permettant de génerer des options(couleurs) */
             if (item.colors) {
                 let tableColors = item.colors;
-                tableColors.forEach((colorProduct, i) => {
-                    colorProduct = document.getElementById('colors').innerHTML += `<option value="${tableColors[i]}">${tableColors[i]}</option> `;
-                })
+                tableColors.forEach((colorProduct) => {
+                    document.getElementById('colors').innerHTML += `<option value="${colorProduct}">${colorProduct}</option> `;
+                });
             } else {
-                document.getElementById('colors').innerHTML += `<option value="Non disponible à l'achat">Non disponible à l'achat</option> `;
+                document.getElementById('colors').innerHTML = `<option>Non disponible à l'achat</option> `;
                 document.getElementById('addToCart').disabled = true;
             }
 
@@ -65,11 +62,11 @@ window.onload = () => {
                 /* Fin de l'event */
                 let productStorage = [];
                 let updateConfirm = false;
-                let quantity = document.querySelector('#quantity').value;
+                let quantity = parseInt(document.querySelector('#quantity').value);
 
                 let optionProduit = {
                     id: id,
-                    quantity: parseInt(quantity),
+                    quantity: quantity,
                     color: document.getElementById('colors').value
                 }
                 /* Function qui se base en rapport à la gestion de la sécurité */
@@ -83,7 +80,7 @@ window.onload = () => {
                         document.getElementById('errorKanap').style.color = 'red';
                         setTimeout(function () {
                             location.reload();
-                        }, 2000)
+                        }, 5000)
                     }
                     else {
                         document.getElementById("confirmKanap").style.fontWeight = 'bold';
@@ -104,7 +101,7 @@ window.onload = () => {
                 }
                 /* Gestion de la sécurité des potentiels failles */
                 if (optionProduit.color === "") {
-                    let test = document.querySelector('#addToCart').innerHTML = `<p id = errorKanap >Veuillez renseignez une couleur</p>`;
+                    let test = document.querySelector('#addToCart').innerHTML = `<p id="errorKanap">Veuillez renseignez une couleur</p>`;
                     alertConf();
                     return false;
                 }
@@ -120,10 +117,7 @@ window.onload = () => {
                     return false;
 
                 }
-                else {
-                    document.querySelector('#addToCart').innerHTML = `<p id = confirmKanap >La commande à été ajouté au panier !</p>`;
-                    alertConf();
-                }
+
                 /* Fin des vérification */
 
                 /* Ajout des élements dans le local Storage sous conditions */
@@ -142,7 +136,9 @@ window.onload = () => {
                 if (!updateConfirm) {
                     productStorage.push(optionProduit);
                     localStorage.setItem('productStorage', JSON.stringify(productStorage));
+
                 }
+
                 /*Fin de l'ajout des élements dans le local Storage */
             })
         })

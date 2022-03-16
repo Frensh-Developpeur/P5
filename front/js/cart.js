@@ -1,3 +1,4 @@
+
 /* Charge le code une fois que le reste est chargée */
 window.onload = () => {
     /* Vérifie que le localStorage est vide */
@@ -12,18 +13,40 @@ window.onload = () => {
         document.querySelector('h1').remove();
         document.querySelector('#totalQuantity').innerHTML = `0`;
         document.querySelector('#totalPrice').innerHTML = `0`;
-
-    } else {
-        allFunction();
+        document.querySelector('#order').disabled = true;
+        return false;
     }
-}
-/* Function affichant tout les détails du DOM */
-function allFunction() {
+
     let productStorage = JSON.parse(localStorage.getItem("productStorage"));
-    let totalItem = 0;
+    const apiUrl = 'http://localhost:3000/api/products/';
+    allFunction(productStorage, apiUrl);
+
+    /* Evenement qui gère la suppression des produits  */
+    document.querySelector('#cart__items').addEventListener('click', function (e) {
+        suppItem(e, productStorage, apiUrl);
+    })
+
+    /* Evenement qui gère la quantité des produits  */
+    document.querySelector('#cart__items').addEventListener('change', function (e) {
+        changeItem(e, productStorage, apiUrl);
+    })
+    /* Evenement qui gere le formulaire  */
+    document.querySelector('#order').addEventListener('click', function (e) {
+        e.preventDefault();
+        if (checkForm() === false) {
+            return false;
+        }
+        requestDom()
+
+    });
+}
+
+/* Function affichant les produit contenu dans le localStorage*/
+function allFunction(productStorage, apiUrl) {
+    let totalPriceItem = 0;
     let totalPrice = 0;
     let totalNumberItem = 0;
-    const apiUrl = 'http://localhost:3000/api/products/';
+
     productStorage.forEach((product, i) => {
         fetch(apiUrl + product.id)
             .then(res => res.json())
@@ -55,226 +78,185 @@ function allFunction() {
                             </div>`;
                 document.getElementById('cart__items').appendChild(articleCreate);
                 totalNumberItem += productStorage[i].quantity;
-                totalItem = productStorage[i].quantity;
-                totalItem = totalItem * productApi.price;
-                totalPrice += totalItem;
+                totalPriceItem = productStorage[i].quantity * productApi.price;
+                totalPrice += totalPriceItem;
                 document.querySelector('#totalQuantity').innerHTML = `${totalNumberItem}`;
                 document.querySelector('#totalPrice').innerHTML = `${totalPrice}`;
-            })
-    })
-    /* Evenement qui gère la quantité des produits  */
-    document.querySelector('#cart__items').addEventListener('change', function (e) {
-        if (e.target.className === 'itemQuantity') {
-            let modifQuantity = parseInt(e.target.value);
-            let dataSetId = e.target.closest('.cart__item').dataset.id;
-            let dataSetColor = e.target.closest('.cart__item').dataset.color;
-            productStorage.forEach((product, i) => {
-                fetch(apiUrl + product.id)
-                    .then(res => res.json())
-                    .then(productApi => {
-                        if (product.id === dataSetId && product.color === dataSetColor) {
-                            function modifPriceAndQuantityTotal() {
-                                if (parseInt(e.target.value) === 0) {
+            });
+    });
+}
+function changeItem(e, productStorage, apiUrl) {
+    if (e.target.className === 'itemQuantity') {
+        let modifQuantity = parseInt(e.target.value);
+        let dataSetId = e.target.closest('.cart__item').dataset.id;
+        let dataSetColor = e.target.closest('.cart__item').dataset.color;
+        productStorage.forEach((product, i) => {
+            fetch(apiUrl + product.id)
+                .then(res => res.json())
+                .then(productApi => {
+                    if (product.id === dataSetId && product.color === dataSetColor) {
+                        if (modifQuantity >= 1 && modifQuantity <= 100 && Number.isInteger(modifQuantity)) {
 
-                                    let totalQuantity = parseInt(document.querySelector('#totalQuantity').textContent);
-                                    totalQuantity = totalQuantity - product.quantity;
-                                    totalQuantity = totalQuantity + parseInt(e.target.value);
-                                    totalQuantity++;
-                                    document.querySelector('#totalQuantity').innerHTML = `${totalQuantity}`;
-
-                                    let totalPrice = parseInt(document.querySelector('#totalPrice').textContent);
-                                    let priceUnitConst = productApi.price * product.quantity;
-                                    let priceUnitLet = productApi.price * parseInt(e.target.value);
-                                    priceUnit = priceUnitLet - priceUnitConst;
-                                    totalPrice = totalPrice + priceUnit;
-                                    totalPrice = totalPrice + productApi.price;
-                                    document.querySelector('#totalPrice').innerHTML = `${totalPrice}`;
-                                } else {
-
-                                    let totalQuantity = parseInt(document.querySelector('#totalQuantity').textContent);
-                                    totalQuantity = totalQuantity - product.quantity;
-                                    totalQuantity = totalQuantity + parseInt(e.target.value);
-                                    document.querySelector('#totalQuantity').innerHTML = `${totalQuantity}`;
-
-                                    let totalPrice = parseInt(document.querySelector('#totalPrice').textContent);
-                                    let priceUnitConst = productApi.price * product.quantity;
-                                    let priceUnitLet = productApi.price * parseInt(e.target.value);
-                                    priceUnit = priceUnitLet - priceUnitConst;
-                                    totalPrice = totalPrice + priceUnit;
-                                    document.querySelector('#totalPrice').innerHTML = `${totalPrice}`;
-                                }
-                            }
-                            if (e.target.value >= 1 && e.target.value <= 100) {
-                                modifPriceAndQuantityTotal();
-                                product.quantity = modifQuantity;
-                                productStorage[i] = product;
-                                localStorage.setItem('productStorage', JSON.stringify(productStorage))
-
-                            } else {
-                                modifPriceAndQuantityTotal();
-                                if (!Number.isInteger(modifQuantity) || modifQuantity < 0 || modifQuantity > 100) {
-                                    alert('Erreur, la valeur doit doit être supérieur à 0 et inférieur ou égal à 100');
-                                    location.reload();
-                                    return false;
-                                }
-                                if (confirm("Voulez vous supprimez l'article ?")) {
-
-                                    let dataItem = e.target.closest('.cart__item');
-                                    dataItem.remove();
-                                    let tableProductFilter = productStorage.filter((item => item.id != dataSetId || item.color != dataSetColor));
-                                    productStorage = tableProductFilter;
-                                    localStorage.setItem('productStorage', JSON.stringify(productStorage));
-                                    location.reload();
-                                    if (localStorage.getItem('productStorage').length === 2) {
-                                        localStorage.clear();
-                                        location.reload();
-                                    }
-                                    return false;
-
-                                } else {
-                                    e.target.value = 1;
-                                    product.quantity = parseInt(e.target.value);
-                                    productStorage[i] = product;
-                                    localStorage.setItem('productStorage', JSON.stringify(productStorage))
-                                }
-                            }
-                        }
-                    })
-            })
-        }
-    })
-
-    /* Evenement qui gère la suppression des produits */
-    document.querySelector('#cart__items').addEventListener('click', function (e) {
-
-        if (e.target.className === 'deleteItem') {
-            let dataItem = e.target.closest('.cart__item');
-            let dataSetId = e.target.closest('.cart__item').dataset.id;
-            let dataSetColor = e.target.closest('.cart__item').dataset.color;
-
-            productStorage.forEach((product, i) => {
-                fetch(apiUrl + product.id)
-                    .then(res => res.json())
-                    .then(productApi => {
-
-                        if (product.id === dataSetId && product.color === dataSetColor) {
-
-                            let totalItemDom = parseInt(document.querySelector('#totalQuantity').textContent);
-                            let totalQuantity = parseInt(totalItemDom - product.quantity);
+                            let totalQuantity = parseInt(document.querySelector('#totalQuantity').textContent);
+                            totalQuantity = (totalQuantity - product.quantity) + parseInt(e.target.value);
                             document.querySelector('#totalQuantity').innerHTML = `${totalQuantity}`;
 
-                            let totalPriceDom = parseInt(document.querySelector('#totalPrice').textContent);
-                            let totalPriceJs = productApi.price * product.quantity;
-                            let totalPrice = parseInt(totalPriceDom - totalPriceJs);
+                            let totalPrice = parseInt(document.querySelector('#totalPrice').textContent);
+                            let priceUnitConst = productApi.price * product.quantity;
+                            let priceUnitLet = productApi.price * parseInt(e.target.value);
+                            priceUnit = priceUnitLet - priceUnitConst;
+                            totalPrice = totalPrice + priceUnit;
                             document.querySelector('#totalPrice').innerHTML = `${totalPrice}`;
+                            product.quantity = modifQuantity;
+                            productStorage[i] = product;
+                            localStorage.setItem('productStorage', JSON.stringify(productStorage))
 
-                            dataItem.remove();
-                            let tableProductFilter = productStorage.filter((item => item.id != dataSetId || item.color != dataSetColor));
-                            productStorage = tableProductFilter;
-                            localStorage.setItem('productStorage', JSON.stringify(productStorage));
+                        } else {
 
-                            if (localStorage.getItem('productStorage').length === 2) {
-                                localStorage.clear();
-                                location.reload();
+                            if (!Number.isInteger(modifQuantity) || modifQuantity < 0 || modifQuantity > 100) {
+                                alert('Erreur, la valeur doit doit être supérieur à 0 et inférieur ou égal à 100');
+                                e.target.value = product.quantity;
+                                return false;
+                            }
+
+                            if (confirm("Voulez vous supprimez l'article ?")) {
+                                let totalQuantity = parseInt(document.querySelector('#totalQuantity').textContent);
+                                totalQuantity = (totalQuantity - product.quantity) + parseInt(e.target.value);
+                                document.querySelector('#totalQuantity').innerHTML = `${totalQuantity}`;
+
+                                let totalPrice = parseInt(document.querySelector('#totalPrice').textContent);
+                                let priceUnitConst = productApi.price * product.quantity;
+                                let priceUnitLet = productApi.price * parseInt(e.target.value);
+                                priceUnit = priceUnitLet - priceUnitConst;
+                                totalPrice = totalPrice + priceUnit;
+                                document.querySelector('#totalPrice').innerHTML = `${totalPrice}`;
+                                let dataItem = e.target.closest('.cart__item');
+                                dataItem.remove();
+                                let tableProductFilter = productStorage.filter((item => item.id != dataSetId || item.color != dataSetColor));
+                                productStorage = tableProductFilter;
+                                localStorage.setItem('productStorage', JSON.stringify(productStorage));
+
+                                if (localStorage.getItem('productStorage').length === 2) {
+                                    localStorage.clear();
+                                    location.reload();
+                                }
+                            } else {
+                                e.target.value = product.quantity;
                             }
                         }
-                    })
-            })
-        }
-    })
-}
-/* Evenement qui gere le formulaire  */
-document.querySelector('#order').addEventListener('click', function (e) {
-    checkForm();
-    e.preventDefault();
-    function checkForm() {
-        let firstName = document.getElementById('firstName');
-        let lastName = document.getElementById('lastName');
-        let address = document.getElementById('address');
-        let city = document.getElementById('city');
-        let email = document.getElementById('email');
-
-        const allNameReg = new RegExp(`^[a-zA-Zàâäéèêëïîôöùûüç° -]{1,}$`);
-        const addressReg = new RegExp(`^[a-zA-Zàâäéèêëïîôöùûüç°0-9 -]{1,}$`);
-        const cityReg = new RegExp(`^[a-zA-Zàâäéèêëïîôöùûüç° -]{1,}$`);
-        const emailReg = new RegExp(`^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$`, `g`);
-
-        let updated = true;
-
-        if (!allNameReg.test(firstName.value.trim())) {
-            let msgErrorFirst = document.getElementById('firstNameErrorMsg').textContent = `Ce champ ne doit pas contenir de chiffre`;
-            updated = false;
-        } else {
-            let msgErrorFirst = document.getElementById('firstNameErrorMsg').textContent = ``;
-        }
-        if (!allNameReg.test(lastName.value.trim())) {
-            let msgErrorLast = document.getElementById('lastNameErrorMsg').textContent = `Ce champ ne doit pas contenir de chiffre`;
-            updated = false;
-        }
-        else {
-            let msgErrorLast = document.getElementById('lastNameErrorMsg').textContent = ``;
-        }
-        if (!addressReg.test(address.value.trim())) {
-            let msgErrorAddress = document.getElementById('addressErrorMsg').textContent = `Vérifier qu'il n'y a aucune erreur !`;
-            updated = false;
-        } else {
-            let msgErrorAddress = document.getElementById('addressErrorMsg').textContent = ``;
-        }
-        if (!cityReg.test(city.value.trim())) {
-            let msgErrorCity = document.getElementById('cityErrorMsg').textContent = `Vérifier qu'il n'y a aucune erreur !`;
-            updated = false;
-        } else {
-            let msgErrorCity = document.getElementById('cityErrorMsg').textContent = ``;
-        }
-        if (!emailReg.test(email.value.trim())) {
-            let msgErrorEmail = document.getElementById('emailErrorMsg').textContent = `Vérifier que votre adresse ressemble bien à ce format : test@lok.fr!`;
-            updated = false;
-        } else {
-            let msgErrorEmail = document.getElementById('emailErrorMsg').textContent = ``;
-        }
-        if (updated === true) {
-            if (localStorage.getItem('productStorage')) {
-                let contact = {
-                    firstName: document.querySelector('#firstName').value,
-                    lastName: document.querySelector('#lastName').value,
-                    address: document.querySelector('#address').value,
-                    city: document.querySelector('#city').value,
-                    email: document.querySelector('#email').value
-                }
-                localStorage.setItem('contact', JSON.stringify(contact));
-                let productStorage = JSON.parse(localStorage.getItem("productStorage"));
-                let products = [];
-
-                productStorage.forEach((product, i) => {
-                    products.push(productStorage[i].id);
-
+                    }
                 })
-                let contactProductsOrder = {
-                    contact,
-                    products
-                }
-                fetch("http://localhost:3000/api/products/order", {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-type': 'application/json'
-                    },
-                    body: JSON.stringify(contactProductsOrder),
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        window.location.href = `confirmation.html?orderId=${data.orderId}`;
-                    })
-                localStorage.clear();
-            } else {
-                let test = document.createElement('p');
-                test.style.textAlign = 'center';
-                test.style.fontSize = '2rem';
-                test.textContent = `Le panier est vide`;
-                document.querySelector('.cart__order__form').appendChild(test);
-            }
-
-        }
+        })
     }
 }
-)
+function suppItem(e, productStorage, apiUrl) {
+    if (e.target.className === 'deleteItem') {
+        let dataItem = e.target.closest('.cart__item');
+        let dataSetId = e.target.closest('.cart__item').dataset.id;
+        let dataSetColor = e.target.closest('.cart__item').dataset.color;
+
+        productStorage.forEach((product, i) => {
+            fetch(apiUrl + product.id)
+                .then(res => res.json())
+                .then(productApi => {
+
+                    if (product.id === dataSetId && product.color === dataSetColor) {
+
+                        let totalItemDom = parseInt(document.querySelector('#totalQuantity').textContent);
+                        let totalQuantity = parseInt(totalItemDom - product.quantity);
+                        document.querySelector('#totalQuantity').innerHTML = `${totalQuantity}`;
+
+                        let totalPriceDom = parseInt(document.querySelector('#totalPrice').textContent);
+                        let totalPriceJs = productApi.price * product.quantity;
+                        let totalPrice = parseInt(totalPriceDom - totalPriceJs);
+                        document.querySelector('#totalPrice').innerHTML = `${totalPrice}`;
+
+                        dataItem.remove();
+                        let tableProductFilter = productStorage.filter((item => item.id != dataSetId || item.color != dataSetColor));
+                        productStorage = tableProductFilter;
+                        localStorage.setItem('productStorage', JSON.stringify(productStorage));
+
+                        if (localStorage.getItem('productStorage').length === 2) {
+                            localStorage.clear();
+                            location.reload();
+                        }
+                    }
+                })
+        })
+    }
+}
+
+function checkForm() {
+    let firstName = document.getElementById('firstName');
+    let lastName = document.getElementById('lastName');
+    let address = document.getElementById('address');
+    let city = document.getElementById('city');
+    let email = document.getElementById('email');
+
+    const allNameReg = new RegExp(`^[a-zA-Zàâäéèêëïîôöùûüç° -]{1,}$`);
+    const addressReg = new RegExp(`^[a-zA-Zàâäéèêëïîôöùûüç°0-9 -]{1,}$`);
+    const cityReg = new RegExp(`^[a-zA-Zàâäéèêëïîôöùûüç° -]{1,}$`);
+    const emailReg = new RegExp(`^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$`, `g`);
+
+    let msgErrorFirst = (!allNameReg.test(firstName.value.trim())) ? `Ce champ ne doit pas contenir de chiffre` : ``;
+    document.getElementById('firstNameErrorMsg').textContent = msgErrorFirst;
+
+    let msgErrorLast = (!allNameReg.test(lastName.value.trim())) ? `Ce champ ne doit pas contenir de chiffre` : ``;
+    document.getElementById('lastNameErrorMsg').textContent = msgErrorLast;
+
+    let msgErrorAddress = (!addressReg.test(address.value.trim())) ? `Vérifier qu'il n'y a aucune erreur !` : ``;
+    document.getElementById('addressErrorMsg').textContent = msgErrorAddress;
+
+    let msgErrorCity = (!cityReg.test(city.value.trim())) ? `Vérifier qu'il n'y a aucune erreur !` : ``;
+    document.getElementById('cityErrorMsg').textContent = msgErrorCity;
+
+    let msgErrorEmail = (!emailReg.test(email.value.trim())) ? `Vérifier que votre adresse ressemble bien à ce format : exemple@domaine.com` : ``;
+    document.getElementById('emailErrorMsg').textContent = msgErrorEmail;
+
+
+    if (msgErrorLast || msgErrorFirst || msgErrorAddress || msgErrorCity || msgErrorEmail) {
+        return false;
+    }
+    //
+
+}
+
+function requestDom() {
+    let contact = {
+        firstName: document.querySelector('#firstName').value,
+        lastName: document.querySelector('#lastName').value,
+        address: document.querySelector('#address').value,
+        city: document.querySelector('#city').value,
+        email: document.querySelector('#email').value
+    }
+    let productStorage = JSON.parse(localStorage.getItem("productStorage"));
+    let products = [];
+
+    productStorage.forEach((product) => {
+        products.push(product.id);
+    });
+
+    let contactProductsOrder = {
+        contact,
+        products
+    };
+    serverResp(contactProductsOrder);
+}
+
+function serverResp(contactProductsOrder) {
+    fetch("http://localhost:3000/api/products/order", {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json',
+            'Content-type': 'application/json'
+        },
+        body: JSON.stringify(contactProductsOrder),
+    })
+        .then(res => res.json())
+        .then(data => {
+            localStorage.clear();
+            window.location.href = `confirmation.html?orderId=${data.orderId}`;
+        });
+}
+
+
