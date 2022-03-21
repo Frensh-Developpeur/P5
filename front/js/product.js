@@ -71,53 +71,51 @@ window.onload = () => {
                 }
                 /* Function qui se base en rapport à la gestion de la sécurité */
                 function alertConf() {
-                    let buttonDisabled = document.querySelector('#addToCart');
-                    buttonDisabled.disabled = true;
-                    document.getElementById("addToCart").style.backgroundColor = 'white';
 
                     if (optionProduit.color === "" || !Number.isInteger(optionProduit.quantity) || optionProduit.quantity <= 0 || optionProduit.quantity > 100) {
+                        let errorKanap = document.createElement('h3');
+                        errorKanap.setAttribute('id', 'errorKanap');
+                        errorKanap.style.textAlign = 'center';
+                        document.querySelector('.item__content').appendChild(errorKanap);
                         document.getElementById("errorKanap").style.fontWeight = 'bold';
                         document.getElementById('errorKanap').style.color = 'red';
                         setTimeout(function () {
-                            location.reload();
-                        }, 5000)
+                            errorKanap.remove();
+                        }, 4000);
                     }
                     else {
+                        let confirmKanap = document.createElement('h2');
+                        confirmKanap.setAttribute('id', 'confirmKanap');
+                        confirmKanap.style.textAlign = 'center';
+                        document.querySelector('.item__content').appendChild(confirmKanap);
                         document.getElementById("confirmKanap").style.fontWeight = 'bold';
-                        document.getElementById("confirmKanap").style.color = 'green';
-                        if (confirm("Voulez-vous être renvoyé au panier ? L'option Annuler vous permet d'ajouter la commande au panier tout en restant sur cette page !")) {
-                            setTimeout(function () {
-                                window.location.href = `cart.html`;
-                            }, 1000)
-
-                        } else {
-                            setTimeout(function () {
-                                location.reload();
-                            }, 2000)
-                        }
-
+                        document.getElementById("confirmKanap").style.color = 'lightGreen';
+                        setTimeout(function () {
+                            confirmKanap.remove();
+                        }, 2000);
                     }
 
                 }
                 /* Gestion de la sécurité des potentiels failles */
                 if (optionProduit.color === "") {
-                    let test = document.querySelector('#addToCart').innerHTML = `<p id="errorKanap">Veuillez renseignez une couleur</p>`;
                     alertConf();
+                    errorKanap.textContent = 'Veuillez renseignez une couleur';
                     return false;
                 }
                 else if (!Number.isInteger(optionProduit.quantity)) {
-                    let test = document.querySelector('#addToCart').innerHTML = `<p id = errorKanap >Il faut renseignez un chiffre ou un nombre dans la partie quantiter</p>`;
                     alertConf();
+                    errorKanap.textContent = 'Il faut renseignez un chiffre ou un nombre dans la partie quantiter';
                     return false;
                 }
                 else if (optionProduit.quantity <= 0 || optionProduit.quantity > 100) {
-                    document.querySelector('#addToCart').innerHTML = `<p id = errorKanap >Veuillez renseignez une valuer supérieur à 0 et inférieur ou égal à 100 pour chaque produit</p>`;
-                    document.getElementById('errorKanap').style.color = 'red';
                     alertConf();
+                    errorKanap.textContent = 'Veuillez renseignez une valeur supérieur à 0 et inférieur ou égal à 100 pour chaque produit';
                     return false;
-
                 }
-
+                if (true) {
+                    alertConf();
+                    confirmKanap.textContent = 'Article ajouté au panier';
+                }
                 /* Fin des vérification */
 
                 /* Ajout des élements dans le local Storage sous conditions */

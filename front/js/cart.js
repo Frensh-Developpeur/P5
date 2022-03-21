@@ -37,7 +37,6 @@ window.onload = () => {
             return false;
         }
         requestDom()
-
     });
 }
 
